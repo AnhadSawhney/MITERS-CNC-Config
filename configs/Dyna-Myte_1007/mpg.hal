@@ -1,0 +1,104 @@
+# DYNA MYTE Runs linuxcnc 2.6.11
+
+loadrt hal_parport cfg="0x378 in"
+loadrt encoder num_chan=1
+loadrt mux16 count=1
+addf parport.0.read servo-thread
+addf parport.0.write servo-thread
+addf encoder.capture-position servo-thread
+addf encoder.update-counters servo-thread
+addf mux16.0 servo-thread
+loadrt estop_latch
+addf estop-latch.0 servo-thread
+
+loadrt ilowpass
+addf ilowpass.0 servo-thread
+
+setp ilowpass.0.scale 1000
+setp ilowpass.0.gain 0.01
+
+# If your MPG outputs a quadrature signal per click set x4 to 1
+# If your MPG puts out 1 pulse per click set x4 to 0
+setp encoder.0.x4-mode 0
+
+# For velocity mode, set to 1
+# In velocity mode the axis stops when the dial is stopped
+# even if that means the commanded motion is not completed,
+# For position mode (the default), set to 0
+# In position mode the axis will move exactly jog-scale
+# units for each count, regardless of how long that might take,
+setp axis.0.jog-vel-mode 1
+setp axis.1.jog-vel-mode 1
+setp axis.2.jog-vel-mode 1
+# setp axis.4.jog-vel-mode 1
+# setp axis.5.jog-vel-mode 1
+
+# --- PINOUT ---
+net select-x-axis    <=  parport.0.pin-07-in
+net select-y-axis    <=  parport.0.pin-10-in
+net select-z-axis    <=  parport.0.pin-08-in
+net select-a-axis    <=  parport.0.pin-02-in
+net select-b-axis    <=  parport.0.pin-09-in
+
+net inc-select-1    <=  parport.0.pin-04-in
+net inc-select-1    =>  mux16.0.sel0
+net inc-select-10   <=  parport.0.pin-05-in
+net inc-select-10   =>  mux16.0.sel1
+net inc-select-100  <=  parport.0.pin-12-in
+net inc-select-100  =>  mux16.0.sel2
+net inc-select-1000 <=  parport.0.pin-06-in
+net inc-select-1000 =>  mux16.0.sel3
+
+# The MPG inputs
+net mpg-a encoder.0.phase-A <= parport.0.pin-11-in-not
+net mpg-b encoder.0.phase-B <= parport.0.pin-03-in
+
+# --- ESTOP ---
+# comment out anything that connects iocontrol.0.user-enable-out to iocontrol.0.emc-enable-in in the rest of the HAL code
+net estop-loopout iocontrol.0.emc-enable-in <= estop-latch.0.ok-out
+net estop-loopin iocontrol.0.user-enable-out => estop-latch.0.ok-in
+net estop-reset iocontrol.0.user-request-enable => estop-latch.0.reset
+net estop-mpg estop-latch.0.fault-in <= parport.0.pin-13-in-not
+
+# --- Axis Selection ---
+net select-x-axis    =>  halui.axis.0.select  =>  halui.joint.0.select
+net select-x-axis    =>  axis.0.jog-enable  =>  joint.0.jog-enable
+net select-y-axis    =>  halui.axis.1.select  =>  halui.joint.1.select
+net select-y-axis    =>  axis.1.jog-enable  =>  joint.1.jog-enable
+net select-z-axis    =>  halui.axis.2.select  =>  halui.joint.2.select
+net select-z-axis    =>  axis.2.jog-enable  =>  joint.2.jog-enable
+#net select-a-axis    =>  halui.axis.3.select  =>  halui.joint.3.select
+#net select-a-axis    =>  axis.3.jog-enable#  =>  joint.3.jog-enable
+#net select-b-axis    =>  halui.axis.4.select  =>  halui.joint.4.select
+#net select-b-axis    =>  axis.4.jog-enable#  =>  joint.4.jog-enable
+
+# --- Rate Selection ---
+# something's wrong (ESTOP) and no axis pin is high, so set increment to 0 (can't move)
+setp mux16.0.in00 0
+# normal operation
+setp mux16.0.in01 0.0001
+setp mux16.0.in02 0.001
+setp mux16.0.in04 0.01
+setp mux16.0.in08 0.1
+setp mux16.0.debounce-time 0.200
+
+# The output from the mux is sent to each axis jog scale
+net mpg-scale <= mux16.0.out-f
+net mpg-scale =>  axis.0.jog-scale  =>  joint.0.jog-scale
+net mpg-scale =>  axis.1.jog-scale  =>  joint.1.jog-scale
+net mpg-scale =>  axis.2.jog-scale  =>  joint.2.jog-scale
+#net mpg-scale =>  axis.4.jog-scale  =>  joint.3.jog-scale
+#net mpg-scale =>  axis.5.jog-scale  =>  joint.4.jog-scale
+net mpg-scale =>  scale.jog.in
+
+# The output from encoder counts is sent to ilowpass
+net mpg-out ilowpass.0.in <= encoder.0.counts
+
+# The output from the ilowpass is sent to each axis jog count
+# Only the selected axis will move.
+net encoder-counts  <= ilowpass.0.out
+net encoder-counts => axis.0.jog-counts  =>  joint.0.jog-counts
+net encoder-counts => axis.1.jog-counts  =>  joint.1.jog-counts
+net encoder-counts => axis.2.jog-counts  =>  joint.2.jog-counts
+#net encoder-counts => axis.3.jog-counts  =>  joint.3.jog-counts
+#net encoder-counts => axis.4.jog-counts  =>  joint.4.jog-counts
