@@ -366,22 +366,22 @@ net spindle-fb-rpm-abs-filtered  lowpass.spindle.out
 
 #  ---HALUI signals---
 
-# net joint-select-a        halui.axis.x.select
+net joint-select-a        halui.axis.x.select
 net x-is-homed            halui.joint.0.is-homed
 net jog-x-pos             halui.axis.x.plus
 net jog-x-neg             halui.axis.x.minus
 net jog-x-analog          halui.axis.x.analog
-# net joint-select-b        halui.axis.y.select
+net joint-select-b        halui.axis.y.select
 net y-is-homed            halui.joint.1.is-homed
 net jog-y-pos             halui.axis.y.plus
 net jog-y-neg             halui.axis.y.minus
 net jog-y-analog          halui.axis.y.analog
-# net joint-select-c        halui.axis.z.select
+net joint-select-c        halui.axis.z.select
 net z-is-homed            halui.joint.2.is-homed
 net jog-z-pos             halui.axis.z.plus
 net jog-z-neg             halui.axis.z.minus
 net jog-z-analog          halui.axis.z.analog
-# net joint-select-d        halui.axis.a.select
+net joint-select-d        halui.axis.a.select
 net a-is-homed            halui.joint.3.is-homed
 net jog-a-pos             halui.axis.a.plus
 net jog-a-neg             halui.axis.a.minus
