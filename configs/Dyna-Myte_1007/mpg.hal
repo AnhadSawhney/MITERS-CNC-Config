@@ -14,7 +14,7 @@ addf estop-latch.0 servo-thread
 loadrt ilowpass
 addf ilowpass.0 servo-thread
 
-setp ilowpass.0.scale 1000
+setp ilowpass.0.scale 1
 setp ilowpass.0.gain 0.01
 
 # If your MPG outputs a quadrature signal per click set x4 to 1
@@ -34,19 +34,19 @@ setp axis.z.jog-vel-mode 1
 # setp axis.5.jog-vel-mode 1
 
 # --- PINOUT ---
-net select-x-axis    <=  parport.0.pin-07-in
-net select-y-axis    <=  parport.0.pin-10-in
-net select-z-axis    <=  parport.0.pin-08-in
-net select-a-axis    <=  parport.0.pin-02-in
-net select-b-axis    <=  parport.0.pin-09-in
+net select-x-axis    <=  parport.0.pin-07-in-not
+net select-y-axis    <=  parport.0.pin-10-in-not
+net select-z-axis    <=  parport.0.pin-08-in-not
+net select-a-axis    <=  parport.0.pin-02-in-not
+net select-b-axis    <=  parport.0.pin-09-in-not
 
-net inc-select-1    <=  parport.0.pin-04-in
+net inc-select-1    <=  parport.0.pin-04-in-not
 net inc-select-1    =>  mux16.0.sel0
-net inc-select-10   <=  parport.0.pin-05-in
+net inc-select-10   <=  parport.0.pin-05-in-not
 net inc-select-10   =>  mux16.0.sel1
-net inc-select-100  <=  parport.0.pin-12-in
+net inc-select-100  <=  parport.0.pin-12-in-not
 net inc-select-100  =>  mux16.0.sel2
-net inc-select-1000 <=  parport.0.pin-06-in
+net inc-select-1000 <=  parport.0.pin-06-in-not
 net inc-select-1000 =>  mux16.0.sel3
 
 # The MPG inputs
@@ -58,7 +58,7 @@ net mpg-b encoder.0.phase-B <= parport.0.pin-03-in
 net estop-loopout iocontrol.0.emc-enable-in <= estop-latch.0.ok-out
 net estop-loopin iocontrol.0.user-enable-out => estop-latch.0.ok-in
 net estop-reset iocontrol.0.user-request-enable => estop-latch.0.reset
-net estop-mpg estop-latch.0.fault-in <= parport.0.pin-13-in-not
+net estop-mpg estop-latch.0.fault-in <= parport.0.pin-13-in
 
 # --- Axis Selection ---
 net select-x-axis    =>  halui.axis.x.select  =>  halui.joint.0.select
